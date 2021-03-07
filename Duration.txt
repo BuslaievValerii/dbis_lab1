@@ -1,0 +1,1 @@
+Duration of inserting data from all the years is 302.86989092826843
