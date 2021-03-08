@@ -9,7 +9,7 @@ import time
 
 
 YEARS = ['2016', '2017', '2018', '2019', '2020']
-COLUMNS = ['OutID', 'Regname', 'engTestStatus', 'engBall100']
+COLUMNS = ['outid', 'birth', 'sextypename', 'regname', 'areaname', 'tername', 'regtypename', 'eoname', 'eotypename', 'eoregname', 'eoareaname', 'eotername', 'eoparent', 'ukrtest', 'ukrteststatus', 'ukrball100', 'ukrball12', 'ukrptname', 'ukrptregname', 'ukrptareaname', 'ukrpttername', 'histtest', 'histlang', 'histteststatus', 'histball100', 'histball12', 'histptname', 'histptregname', 'histptareaname', 'histpttername', 'mathtest', 'mathlang', 'mathteststatus', 'mathball100', 'mathball12', 'mathptname', 'mathptregname', 'mathptareaname', 'mathpttername', 'phystest', 'physlang', 'physteststatus', 'physball100', 'physptname', 'physptregname', 'physptareaname', 'physpttername', 'chemtest', 'chemlang', 'chemteststatus', 'chemball100', 'chemptname', 'chemptregname', 'chemptareaname', 'chempttername', 'biotest', 'biolang', 'bioteststatus', 'bioball100', 'bioptname', 'bioptregname', 'bioptareaname', 'biopttername', 'geotest', 'geolang', 'geoteststatus', 'geoball100', 'geoptname', 'geoptregname', 'geoptareaname', 'geopttername', 'engtest', 'engteststatus', 'engball100', 'engptname', 'engptregname', 'engptareaname', 'engpttername', 'frtest', 'frteststatus', 'frball100', 'frptname', 'frptregname', 'frptareaname', 'frpttername', 'deutest', 'deuteststatus', 'deuball100', 'deuptname', 'deuptregname', 'deuptareaname', 'deupttername', 'sptest', 'spteststatus', 'spball100', 'spptname', 'spptregname', 'spptareaname', 'sppttername', 'rustest', 'rusteststatus', 'rusball100', 'rusptname', 'rusptregname', 'rusptareaname', 'ruspttername', 'stid', 'tertypename', 'classprofilename', 'classlangname', 'physball12', 'chemball12', 'bioball12', 'geoball12', 'engball12', 'fratest', 'frateststatus', 'fraball100', 'fraball12', 'fraptname', 'fraptregname', 'fraptareaname', 'frapttername', 'deuball12', 'spatest', 'spateststatus', 'spaball100', 'spaball12', 'spaptname', 'spaptregname', 'spaptareaname', 'spapttername', 'rusball12', 'ukrball', 'histball', 'mathball', 'physball', 'chemball', 'bioball', 'geoball', 'engdpalevel', 'engball', 'fradpalevel', 'fraball', 'deudpalevel', 'deuball', 'spadpalevel', 'spaball', 'ukradaptscale']
 TABLENAME = 'eng_results'
 RESULTS_FILENAME = 'Results.csv'
 RESULT_HEADER = ['Region', 'Year', 'Mark']
@@ -70,13 +70,16 @@ def try_insert_data(conn, year):
 				print(f'Processing file {filename}')
 				data = csv.reader(file, delimiter=';', quotechar='"')
 				header = list(map(str.lower, next(data)))
-				indexes = list(map(lambda column: header.index(column.lower()), COLUMNS))
 				num_of_rows = 0
 
 				for row in data:
 					num_of_rows += 1
-					insert_row = tuple(try_convert_type(row[index]) for index in indexes)
+					insert_row = [None]*len(COLUMNS)
+					for i, col in enumerate(header):
+						index = COLUMNS.index(col)
+						insert_row[index] = try_convert_type(row[i])
 					insert_row = (*insert_row, year)
+
 					try_insert(insert_row, conn)
 
 				print(f'Inserted {num_of_rows} rows from {filename} into table {TABLENAME}')
@@ -138,6 +141,7 @@ def try_insert(insert_row, conn):
 		pass
 	except Exception as e:
 		print(e)
+		sys.exit()
 
 
 if __name__ == '__main__':
@@ -146,8 +150,8 @@ if __name__ == '__main__':
 	config.read('settings.ini')
 	conn_config = config['connection']
 
-	for year in YEARS:
-		retry(try_get_data, 'Couldn\'t connect to DB', year)
+	# for year in YEARS:
+	# 	retry(try_get_data, 'Couldn\'t download data', year)
 
 	conn = retry(try_connect, 'Couldn\'t connect to DB', conn_config)
 
